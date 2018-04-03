@@ -3,25 +3,116 @@
   <head>
     <script src="jquery.js"></script>
     <script src="data_generator.js"></script>
+    <link rel="stylesheet" href="format.css">
   </head>
   <body>
     <script>
-
-      $(document).ready(function(){
-        var $body = $('body');
-        $body.html('');
-
-        var index = streams.home.length - 1;
-        while(index >= 0){
-          var tweet = streams.home[index];
-          var $tweet = $('<div></div>');
-          $tweet.text('@' + tweet.user + ': ' + tweet.message);
-          $tweet.appendTo($body);
-          index -= 1;
-        }
-
-      });
-
+		$(document).ready(function(){
+			var $body = $('body');
+			$body.html('');
+			// Gets the time and formats it in non military
+			var getTime = function()	{
+				var tempDate = new Date();
+				var hours = tempDate.getHours();
+				var minutes = tempDate.getMinutes();
+				var dn = 'AM';
+				if (hours === 24)
+					dn = 'AM';
+				else if (hours >= 12)
+					dn = 'PM';
+				if (hours > 12)
+					hours-=12;
+				hours = hours.toString();
+				if (minutes < 10)
+					minutes = '0' + minutes.toString();
+				else
+					minutes = minutes.toString();
+				return hours + ':' + minutes + ' ' + dn;
+			}
+			// adds a title
+			var $title = $('<p>Welcome to Twittler™! </p>');
+			$title.appendTo($body);
+			var userTweets = [];
+			var userPressed = [];
+			for (var i = 0; i < users.length; i++)	{
+				userTweets[i] = [];
+				userPressed[i] = false;
+			}
+			// Displays all of the user tweets
+			for (var i = streams.home.length-1; i>=0; i--)	{
+				var tweet = streams.home[i];
+				var $tweet = $('<div></div>');
+				tweet.time = getTime();
+				// Sets the username as interactable
+				var $current = $('<button class ="user"></button>');
+				$current.text('@' + tweet.user);
+				$current.attr('id',tweet.user);
+				// Appends time to message
+				$tweet.text(tweet.message + ' at ' + tweet.time);
+				// Adds tweet to body of html
+				$tweet.appendTo($body);
+				// Loads tweets into userTweets
+				for(var j = 0; j < users.length; j++){
+					if(users[j] === tweet.user){
+						userTweets[j].push(tweet.message + ' at ' + tweet.time + '@' + tweet.user);
+					}
+				};
+				// Turns current user into a button
+				$current.appendTo($tweet);
+			}
+			// Implements button for getting new tweets
+			var $button = $('<button id = "loader"> I want more tweets!!! </button>');
+			$button.appendTo($body);
+			$("#loader").click(function(){
+				tweet.time = getTime();
+				var newTweets = streams.home[streams.home.length - 1];
+				var $newTweets = $('<div></div>');
+				var $current = $('<button class ="user"></button>');
+				$current.text('@' + newTweets.user);
+				$current.attr('id', newTweets.user);
+				$newTweets.text(newTweets.message + ' at '+ tweet.time);
+				$current.appendTo($newTweets);
+				$(this).before($newTweets);  
+				$('.user').on('click', function()	{
+					var id = this.getAttribute('id');
+					var specificUser = [];
+					for(var i = 0; i < users.length; i++){
+						if(users[i] === id){
+							specificUser = userTweets[i];
+						}
+					};
+					for (var i = specificUser.length-1; i>=0; i--)	{
+						var displayTweet = specificUser[i];
+						var $displayTweet = $('<div></div>');
+						$displayTweet.text(displayTweet);
+						$displayTweet.appendTo(this);
+					}
+				});  
+			});
+			//To show user timelines
+			$('.user').on('click', function(){
+				var id = this.getAttribute('id');
+				var idNum = 0;
+				var specificUser = [];
+				var alreadyPressed = false;
+				for(var i = 0; i < users.length; i++){
+					if(users[i] === id){
+						idNum = i;
+					}
+				};
+				specificUser = userTweets[idNum];
+				alreadyPressed = userPressed[idNum];
+				userPressed[idNum] = true;
+				if (!alreadyPressed)	{
+					for (var i = specificUser.length-1; i>= 0; i--)	{
+						var displayTweet = specificUser[i];
+						var $displayTweet = $('<div></div>');
+						$displayTweet.text(displayTweet);
+						$displayTweet.appendTo(this);
+					}
+				}
+			});
+		})  ;
     </script>
   </body>
 </html>
